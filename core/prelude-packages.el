@@ -35,11 +35,15 @@
 (require 'cl)
 (require 'package)
 
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
 ;; set package-user-dir to be relative to Prelude install path
 (setq package-user-dir (expand-file-name "elpa" prelude-dir))
 (package-initialize)
+
+(defvar prelude-package-archives
+  '(("gnu" . "https://elpa.gnu.org/packages/")
+    ("melpa-stable" . "https://stable.melpa.org/packages/")
+    ("melpa" . "https://melpa.org/packages/"))
+  "A list of package-archives used by prelude.")
 
 (defvar prelude-packages
   '(ace-window
@@ -79,16 +83,41 @@
     zop-to-char)
   "A list of packages to ensure are installed at launch.")
 
+(defvar prelude-package-overrides
+  '('god-mode "melpa")
+  "A plist containing overrides specifying alternative package archives for specific packages.")
+
 (defun prelude-packages-installed-p ()
   "Check if all packages in `prelude-packages' are installed."
   (every #'package-installed-p prelude-packages))
+
+(defun prelude-lookup-package-archive (package)
+  "Look up the package archive for PACKAGE. Defaults to melpa-stable."
+  (assoc (or (plist-get prelude-package-overrides package) "melpa-stable")
+         prelude-package-archives))
+
+(defun prelude-package-refresh-contents ()
+  "Refresh package contents for all prelude-package-archives"
+    (let ((package-archives-temp package-archives))
+      (setq package-archives (append package-archives prelude-package-archives))
+      (package-refresh-contents)
+      (setq package-archives package-archives-temp)
+      )
+    )
+
+(defun prelude-package-install (package)
+  "Install PACKAGE from default package-archive (melpa-stable) or override specified in `prelude-package-overrides'."
+  (let ((package-archives-temp package-archives))
+    (setq package-archives (cons (prelude-lookup-package-archive package) package-archives))
+    (package-install package)
+    (setq package-archives package-archives-temp)))
 
 (defun prelude-require-package (package)
   "Install PACKAGE unless already installed."
   (unless (memq package prelude-packages)
     (add-to-list 'prelude-packages package))
   (unless (package-installed-p package)
-    (package-install package)))
+    (prelude-package-install package)))
 
 (defun prelude-require-packages (packages)
   "Ensure PACKAGES are installed.
@@ -102,7 +131,7 @@ Missing packages are installed automatically."
   (unless (prelude-packages-installed-p)
     ;; check for new packages (package versions)
     (message "%s" "Emacs Prelude is now refreshing its package database...")
-    (package-refresh-contents)
+    (prelude-package-refresh-contents)
     (message "%s" " done.")
     ;; install the missing packages
     (prelude-require-packages prelude-packages)))
