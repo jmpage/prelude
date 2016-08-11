@@ -195,8 +195,8 @@
         (puppet-mode . "melpa-stable")
         (pythonic . "melpa-stable")
         (queue . "melpa-stable")
-        (rainbow-delimiters . "melpa-stable")
-        (rainbow-mode . "melpa-stable")
+        ;(rainbow-delimiters . "melpa-stable")
+        ;(rainbow-mode . "melpa-stable")
         (rich-minority . "melpa-stable")
         (ruby-tools . "melpa-stable")
         ;(rust-mode . "melpa-stable")
@@ -226,11 +226,14 @@
         (which-key . "melpa-stable")
         (with-editor . "melpa-stable")
         (yaml-mode . "melpa-stable")
-        (yari . "melpa-stable")
+        ;(yari . "melpa-stable") ; NOPE
         (yasnippet . "melpa-stable")
         (zenburn-theme . "melpa-stable")
         (zop-to-char . "melpa-stable")
         ))
+
+(package-initialize t)
+(package-refresh-contents)
 
 (defun prelude-packages-installed-p ()
   "Check if all packages in `prelude-packages' are installed."
